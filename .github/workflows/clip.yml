@@ -23,6 +23,7 @@ concurrency:
 jobs:
   clip:
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     env:
       YOUTUBE_CHANNEL_NAME: GT6xCLIPS
     steps:

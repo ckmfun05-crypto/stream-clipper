@@ -10,9 +10,13 @@ from typing import Any
 log = logging.getLogger(__name__)
 
 
-def _run(cmd: list[str]) -> bool:
+def _run(cmd: list[str], timeout: int = 900) -> bool:
     log.debug("Running: %s", " ".join(cmd))
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        log.error("Command timed out after %ss: %s", timeout, cmd[0])
+        return False
     if result.returncode != 0:
         log.debug("Command failed (%d): %s", result.returncode, result.stderr[-2000:])
         return False
@@ -33,6 +37,9 @@ def download_section(
         "--no-playlist",
         "-f", "bestvideo[height<=1080]+bestaudio/best",
         "--merge-output-format", "mp4",
+        "--socket-timeout", "30",
+        "--retries", "2",
+        "--fragment-retries", "2",
         "-o", str(out.with_suffix("")),
     ]
     section_cmd = base + [
@@ -40,14 +47,12 @@ def download_section(
         "--force-keyframes-at-cuts",
         vod_url,
     ]
-    if _run(section_cmd) and out.with_suffix(".mp4").exists():
-        return True
-
-    log.warning("Section download failed for %s (%s-%s); trying full download", vod_url, start, end)
-    if _run(base + [vod_url]):
-        full = out.with_suffix(".mp4")
-        return full.exists()
-    return False
+    # Never fall back to a full VOD: that can be hours of download and breaks
+    # the "one short clip per hour" promise (and free-tier time limits).
+    if not _run(section_cmd, timeout=900):
+        log.warning("Section download failed for %s (%s-%s); skipping", vod_url, start, end)
+        return False
+    return out.with_suffix(".mp4").exists()
 
 
 def make_vertical_clip(
@@ -79,7 +84,7 @@ def make_vertical_clip(
         "-movflags", "+faststart",
         str(dst),
     ]
-    if not _run(cmd):
+    if not _run(cmd, timeout=600):
         log.error("ffmpeg failed to create %s", dst)
         return False
     return dst.exists() and dst.stat().st_size > 0

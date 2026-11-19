@@ -123,6 +123,8 @@ def find_recent_vods(streamer: dict[str, Any], config: dict[str, Any]) -> list[d
         "extract_flat": True,
         "skip_download": True,
         "playlistend": 5,
+        "socket_timeout": 15,
+        "retries": 1,
     }
     try:
         with YoutubeDL(opts) as ydl:
