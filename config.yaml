@@ -9,7 +9,7 @@ discovery:
   # Max number of streams to process in one run.
   max_streams: 3
   # Manual fallback list (empty = auto-discover only).
-  streamers: []
+  streamers: [zarbex]
 
 chat:
   sample_step_seconds: 20   # sample chat every N seconds (smaller = more accurate, more requests)
