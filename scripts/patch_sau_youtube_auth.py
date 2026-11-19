@@ -84,6 +84,10 @@ UPLOAD_GOTO_OLD = 'await page.goto(UPLOAD_URL, wait_until="domcontentloaded")'
 UPLOAD_GOTO_NEW = '''await page.goto(UPLOAD_URL, wait_until="domcontentloaded")
         await _handle_youtube_prompts(page, os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS"))'''
 
+# Upstream sau calls a method its YouTubeVideo class does not implement.
+SCHEDULE_OLD = "    app.set_publish_date(request.schedule)\n"
+SCHEDULE_NEW = "    if hasattr(app, \"set_publish_date\"):\n        app.set_publish_date(request.schedule)\n"
+
 # The upload class later in the same file also needs `os` for the call above.
 GLOBAL_IMPORT_ANCHOR = "import asyncio\n"
 
@@ -124,11 +128,20 @@ def patch(sau_dir: Path) -> None:
                 await channel.first.click(timeout=5000)''',
     )
 
-    if text == original:
+    if text != original:
+        target.write_text(text, encoding="utf-8")
+        print(f"Patched YouTube auth + upload: {target}")
+    else:
         print(f"Already up to date: {target}")
-        return
-    target.write_text(text, encoding="utf-8")
-    print(f"Patched YouTube auth + upload: {target}")
+
+    # Separate CLI file: guard the unsupported scheduling call.
+    cli = sau_dir / "sau_commands" / "youtube.py"
+    cli_text = cli.read_text(encoding="utf-8")
+    if SCHEDULE_OLD in cli_text:
+        cli.write_text(cli_text.replace(SCHEDULE_OLD, SCHEDULE_NEW, 1), encoding="utf-8")
+        print(f"Patched YouTube CLI scheduling: {cli}")
+    else:
+        print(f"Already up to date: {cli}")
 
 
 if __name__ == "__main__":
