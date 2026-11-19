@@ -5,11 +5,15 @@ name: clip
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 * * * *"   # every hour
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: stream-clipper
+  cancel-in-progress: false
 
 jobs:
   clip:

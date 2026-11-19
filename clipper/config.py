@@ -45,6 +45,7 @@ DEFAULTS: dict[str, Any] = {
         ),
         "keyword_count": 3,
     },
+    "max_clips_per_run": 1,  # hourly schedule -> one clip per run
     "state_file": "processed.json",
     "log_dir": "logs",
     "work_dir": "clips",

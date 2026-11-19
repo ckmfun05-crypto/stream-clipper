@@ -40,7 +40,13 @@ def setup_logging(config: dict) -> Path:
     return log_file
 
 
-def process_vod(vod: dict, config: dict, state: State, dry_run: bool) -> dict:
+def process_vod(
+    vod: dict,
+    config: dict,
+    state: State,
+    dry_run: bool,
+    remaining: int | None = None,
+) -> dict:
     """Process one VOD. Returns a small summary dict."""
     vod_id = vod["id"]
     streamer = vod["streamer"]
@@ -66,6 +72,8 @@ def process_vod(vod: dict, config: dict, state: State, dry_run: bool) -> dict:
         min_gap_seconds=hl["min_gap_seconds"],
         max_clips=hl["max_clips_per_vod"],
     )
+    if remaining is not None:
+        segments = segments[:remaining]
     log.info("VOD %s: %d highlight segments", vod_id, len(segments))
     if not segments:
         state.data["vods"][vod_id]["status"] = "no_highlights"
@@ -147,7 +155,17 @@ def main(argv: list[str] | None = None) -> int:
         log.exception("Discovery failed: %s", exc)
         vods = []
 
-    summaries = [process_vod(vod, config, state, args.dry_run) for vod in vods]
+    limit = int(config.get("max_clips_per_run", 0) or 0)
+    remaining = limit if limit > 0 else None
+    summaries = []
+    for vod in vods:
+        if remaining is not None and remaining <= 0:
+            log.info("Reached max_clips_per_run (%d); stopping.", limit)
+            break
+        summary = process_vod(vod, config, state, args.dry_run, remaining=remaining)
+        summaries.append(summary)
+        if remaining is not None:
+            remaining -= summary["clips"]
     log.info("Run finished. Processed %d VODs, %d clips, %d uploads.",
              len(summaries),
              sum(s["clips"] for s in summaries),

@@ -41,6 +41,8 @@ upload:
   description_template: "Clip from {streamer}'s Twitch stream. Original: {vod_url}\nHighlights: {keywords}\n#shorts #gta6 #{streamer}"
   keyword_count: 3
 
+max_clips_per_run: 1   # one clip each hourly run
+
 state_file: processed.json
 log_dir: logs
 work_dir: clips

@@ -144,11 +144,12 @@ every few hours.
 **Linux/macOS cron:**
 
 ```cron
-0 */6 * * * cd /path/to/stream-clipper && .venv/bin/python run.py >> logs/cron.log 2>&1
+0 * * * * cd /path/to/stream-clipper && .venv/bin/python run.py >> logs/cron.log 2>&1
 ```
 
-**GitHub Actions (experimental):** `.github/workflows/clip.yml` runs every 6
-hours and on manual dispatch. Before using it, create a repository secret
+**GitHub Actions (experimental):** `.github/workflows/clip.yml` runs **every
+hour** and on manual dispatch. `config.yaml` sets `max_clips_per_run: 1`, so
+each run uploads at most one clip. Before using it, create a repository secret
 `YOUTUBE_COOKIE_B64` containing the base64 of
 `social-auto-upload/cookies/youtube_creator.json`:
 
