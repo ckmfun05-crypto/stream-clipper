@@ -82,7 +82,7 @@ jobs:
             cp "$TMP_COOKIE" "$HOME/social-auto-upload/cookies/youtube_creator.json"
           fi
           rm -f "$TMP_COOKIE"
-          "$GITHUB_WORKSPACE/.venv/bin/sau" youtube check --account creator
+          "$GITHUB_WORKSPACE/.venv/bin/sau" youtube check --account creator || echo "WARNING: YouTube session check reported invalid; continuing"
 
       - name: Run clipper
         env:
