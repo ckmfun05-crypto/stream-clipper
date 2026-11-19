@@ -36,6 +36,7 @@ upload:
   # User requested public by default. Change to private/unlisted if you prefer review first.
   visibility: public
   account_name: creator
+  channel_url: "https://www.youtube.com/@gta6xclips-e9o"   # informational; the real account is the sau login
   tags: ["gta6", "shorts", "twitch", "gaming"]
   title_template: "{streamer} GTA 6 insane moment #shorts {keywords}"
   description_template: "Clip from {streamer}'s Twitch stream. Original: {vod_url}\nHighlights: {keywords}\n#shorts #gta6 #{streamer}"

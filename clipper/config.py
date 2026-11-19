@@ -37,6 +37,7 @@ DEFAULTS: dict[str, Any] = {
     "upload": {
         "visibility": "public",
         "account_name": "creator",
+        "channel_url": "",
         "tags": ["gta6", "shorts", "twitch", "gaming"],
         "title_template": "{streamer} GTA 6 insane moment #shorts {keywords}",
         "description_template": (

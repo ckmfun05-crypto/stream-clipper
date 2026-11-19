@@ -46,7 +46,16 @@ a browser.
 
 ### YouTube login for Codespaces
 
-Codespaces secrets are exposed as environment variables. Add a Codespaces
+**Easiest (Windows):** run `scripts/setup_youtube_login.ps1` from a PowerShell
+window. It logs you in with your Google account, then saves the session as both
+the Actions and Codespaces secrets automatically:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup_youtube_login.ps1
+```
+Log in with the Google account that owns
+`https://www.youtube.com/@gta6xclips-e9o`. You will not see or handle the cookie.
+
+**Manual:** Codespaces secrets are exposed as environment variables. Add a Codespaces
 secret (Settings → Codespaces → Secrets — **not** Actions secrets) named
 `YOUTUBE_COOKIE_B64` containing the base64 of the Playwright session file:
 
