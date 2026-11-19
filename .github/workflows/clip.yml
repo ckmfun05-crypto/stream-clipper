@@ -26,6 +26,7 @@ jobs:
     timeout-minutes: 25
     env:
       YOUTUBE_CHANNEL_NAME: GT6xCLIPS
+      YOUTUBE_CHANNEL_ID: UC_T3mOx84txMz3Hfw0568Hw
     steps:
       - uses: actions/checkout@v4
 

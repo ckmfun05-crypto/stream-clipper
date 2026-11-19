@@ -60,13 +60,16 @@ def main() -> None:
             )
 
         storage = context.storage_state()
-        # Keep every Google country domain (e.g. .google.co.in) as well as
-        # .google.com/.youtube.com: the correct account's tokens can live on a
-        # country-specific domain. Cookie-only exports lose the refresh tokens.
-        cookies = [
-            c for c in storage.get("cookies", [])
-            if "google" in c.get("domain", "") or "youtube" in c.get("domain", "")
-        ]
+        # Keep only google.com/youtube.com cookies. Brave can be signed in to
+        # several Google accounts at once (including country domains like
+        # .google.co.in); exporting all of them makes headless sessions flip
+        # between accounts at random.
+        allowed = {
+            ".google.com", "google.com", "accounts.google.com",
+            ".youtube.com", "youtube.com", "www.youtube.com",
+            "studio.youtube.com", "accounts.youtube.com",
+        }
+        cookies = [c for c in storage.get("cookies", []) if c.get("domain", "") in allowed]
         origins = [
             o for o in storage.get("origins", [])
             if "google" in o.get("origin", "") or "youtube" in o.get("origin", "")

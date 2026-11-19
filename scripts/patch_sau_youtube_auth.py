@@ -15,7 +15,7 @@ from pathlib import Path
 
 NEW_FUNCTION = '''async def _handle_youtube_prompts(page, channel_name: str) -> None:
     """Dismiss YouTube's channel picker and unsupported-browser interstitial."""
-    for _ in range(30):  # up to ~30 seconds
+    for _ in range(45):  # up to ~45 seconds
         url = page.url
         if "/channel/" in url or "accounts.google.com" in url:
             return
@@ -56,7 +56,8 @@ async def cookie_auth(account_file) -> bool:
             context = await browser.new_context(storage_state=account_file)
             context = await set_init_script(context)
             page = await context.new_page()
-            await page.goto(STUDIO_URL, wait_until="domcontentloaded")
+            channel_id = os.environ.get("YOUTUBE_CHANNEL_ID", "UC_T3mOx84txMz3Hfw0568Hw")
+            await page.goto(f"https://studio.youtube.com/channel/{channel_id}", wait_until="domcontentloaded")
             channel_name = os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS")
             await _handle_youtube_prompts(page, channel_name)
             url = page.url
@@ -85,8 +86,8 @@ UPLOAD_GOTO_NEW = '''await page.goto(UPLOAD_URL, wait_until="domcontentloaded")
         await _handle_youtube_prompts(page, os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS"))'''
 
 # Upstream sau calls a method its YouTubeVideo class does not implement.
-SCHEDULE_OLD = "    app.set_publish_date(request.schedule)\n"
-SCHEDULE_NEW = "    if hasattr(app, \"set_publish_date\"):\n        app.set_publish_date(request.schedule)\n"
+SCHEDULE_OLD = "\n    app.set_publish_date(request.schedule)\n"
+SCHEDULE_NEW = "\n    if hasattr(app, \"set_publish_date\"):\n        app.set_publish_date(request.schedule)\n"
 
 # The upload class later in the same file also needs `os` for the call above.
 GLOBAL_IMPORT_ANCHOR = "import asyncio\n"
@@ -126,6 +127,15 @@ def patch(sau_dir: Path) -> None:
         '''            channel = page.get_by_text(channel_name, exact=False)
             if await channel.count():
                 await channel.first.click(timeout=5000)''',
+    )
+    text = text.replace("    for _ in range(30):  # up to ~30 seconds",
+                        "    for _ in range(45):  # up to ~45 seconds")
+    text = text.replace(
+        '''            await page.goto(STUDIO_URL, wait_until="domcontentloaded")
+            channel_name = os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS")''',
+        '''            channel_id = os.environ.get("YOUTUBE_CHANNEL_ID", "UC_T3mOx84txMz3Hfw0568Hw")
+            await page.goto(f"https://studio.youtube.com/channel/{channel_id}", wait_until="domcontentloaded")
+            channel_name = os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS")''',
     )
 
     if text != original:
