@@ -23,36 +23,81 @@ def _run(cmd: list[str], timeout: int = 900) -> bool:
     return True
 
 
+def _capture(cmd: list[str], timeout: int = 60) -> tuple[bool, str, str]:
+    """Run a command and return (success, stdout, stderr)."""
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        log.error("Command timed out after %ss: %s", timeout, cmd[0])
+        return False, "", ""
+    if result.returncode != 0:
+        log.warning("Command failed (%d): %s", result.returncode, result.stderr[-600:].strip())
+        return False, result.stdout, result.stderr
+    return True, result.stdout, result.stderr
+
+
 def download_section(
     vod_url: str,
     start: float,
     end: float,
     out_path: str | Path,
 ) -> bool:
-    """Download just [start, end] from a VOD with yt-dlp, with a full-download fallback."""
-    out = Path(out_path)
+    """Download just [start, end] from a VOD.
+
+    yt-dlp's --download-sections re-encodes from the beginning of long VODs and
+    times out on GitHub runners. Resolve the HLS manifest with yt-dlp (-g) and
+    let ffmpeg seek directly instead; this took 1-2s even at a 60-minute offset.
+    """
+    out = Path(out_path).with_suffix(".mp4")
     out.parent.mkdir(parents=True, exist_ok=True)
-    base = [
+
+    ok, stdout, _ = _capture(
+        [
+            sys.executable, "-m", "yt_dlp", "-g",
+            "-f", "best[height<=720]/best",
+            vod_url,
+        ],
+        timeout=60,
+    )
+    manifest = next(
+        (line.strip() for line in stdout.splitlines() if line.strip().startswith("http")),
+        "",
+    )
+    if ok and manifest:
+        duration = max(1.0, end - start)
+        cmd = [
+            "ffmpeg", "-y", "-loglevel", "error",
+            "-ss", str(max(0.0, start)),
+            "-i", manifest,
+            "-t", str(duration),
+            "-map", "0:v:0", "-map", "0:a:0?",
+            "-c", "copy", "-bsf:a", "aac_adtstoasc",
+            "-movflags", "+faststart",
+            str(out),
+        ]
+        if _run(cmd, timeout=120) and out.exists() and out.stat().st_size > 0:
+            return True
+        log.warning("Direct HLS download failed for %s; trying yt-dlp fallback", vod_url)
+
+    # Fallback: yt-dlp section extraction without the expensive re-encode.
+    fallback = [
         sys.executable, "-m", "yt_dlp",
         "--no-playlist",
-        "-f", "bestvideo[height<=1080]+bestaudio/best",
+        "-f", "best[height<=720]/best",
         "--merge-output-format", "mp4",
         "--socket-timeout", "30",
-        "--retries", "2",
-        "--fragment-retries", "2",
-        "-o", str(out.with_suffix("")),
-    ]
-    section_cmd = base + [
+        "--retries", "1",
+        "--fragment-retries", "1",
         "--download-sections", f"*{max(0.0, start)}-{end}",
-        "--force-keyframes-at-cuts",
+        "-o", str(out.with_suffix("")),
         vod_url,
     ]
     # Never fall back to a full VOD: that can be hours of download and breaks
     # the "one short clip per hour" promise (and free-tier time limits).
-    if not _run(section_cmd, timeout=180):
+    if not _run(fallback, timeout=120):
         log.warning("Section download failed for %s (%s-%s); skipping", vod_url, start, end)
         return False
-    return out.with_suffix(".mp4").exists()
+    return out.exists() and out.stat().st_size > 0
 
 
 def make_vertical_clip(
