@@ -18,7 +18,7 @@ def _run(cmd: list[str], timeout: int = 900) -> bool:
         log.error("Command timed out after %ss: %s", timeout, cmd[0])
         return False
     if result.returncode != 0:
-        log.debug("Command failed (%d): %s", result.returncode, result.stderr[-2000:])
+        log.warning("Command failed (%d): %s", result.returncode, result.stderr[-600:].strip())
         return False
     return True
 
@@ -49,7 +49,7 @@ def download_section(
     ]
     # Never fall back to a full VOD: that can be hours of download and breaks
     # the "one short clip per hour" promise (and free-tier time limits).
-    if not _run(section_cmd, timeout=900):
+    if not _run(section_cmd, timeout=180):
         log.warning("Section download failed for %s (%s-%s); skipping", vod_url, start, end)
         return False
     return out.with_suffix(".mp4").exists()
@@ -84,7 +84,7 @@ def make_vertical_clip(
         "-movflags", "+faststart",
         str(dst),
     ]
-    if not _run(cmd, timeout=600):
+    if not _run(cmd, timeout=300):
         log.error("ffmpeg failed to create %s", dst)
         return False
     return dst.exists() and dst.stat().st_size > 0
