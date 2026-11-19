@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Secrets and login sessions (raw cookies, browser profiles, env files)
+.env
+conf.py
+*.cookie
+*.cookies
+*.pkl
+sau_session/
+browser_profile/
+
+# Generated media and logs
+clips/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

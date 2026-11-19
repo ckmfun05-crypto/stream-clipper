@@ -1,0 +1,40 @@
+# stream-clipper configuration
+# All settings are free to use. No paid APIs, no subscriptions.
+
+discovery:
+  # We watch Twitch streams whose title/category matches these words (case-insensitive).
+  game_keywords: ["gta", "grand theft auto", "gta 6", "gta6"]
+  # Only consider live streams with at least this many viewers.
+  min_viewers: 500
+  # Max number of streams to process in one run.
+  max_streams: 10
+  # Manual fallback list (empty = auto-discover only).
+  streamers: []
+
+highlights:
+  window_seconds: 10
+  spike_factor: 3.0
+  clip_before_seconds: 15
+  clip_after_seconds: 20
+  min_gap_seconds: 60
+  max_clips_per_vod: 8
+
+cut:
+  width: 1080
+  height: 1920
+  preset: veryfast
+  crf: 23
+  max_seconds: 59
+
+upload:
+  # User requested public by default. Change to private/unlisted if you prefer review first.
+  visibility: public
+  account_name: creator
+  tags: ["gta6", "shorts", "twitch", "gaming"]
+  title_template: "{streamer} GTA 6 insane moment #shorts {keywords}"
+  description_template: "Clip from {streamer}'s Twitch stream. Original: {vod_url}\nHighlights: {keywords}\n#shorts #gta6 #{streamer}"
+  keyword_count: 3
+
+state_file: processed.json
+log_dir: logs
+work_dir: clips

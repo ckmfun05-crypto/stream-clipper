@@ -1,0 +1,67 @@
+# EXPERIMENTAL: scheduled runs may be blocked by Twitch/YouTube datacenter IP
+# checks, and the YouTube login session expires periodically. Running on your
+# own PC is the reliable path. See README.md.
+name: clip
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  clip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install stream-clipper dependencies
+        run: |
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          uv venv
+          uv pip install -e .
+
+      - name: Install social-auto-upload
+        run: |
+          git clone https://github.com/dreammis/social-auto-upload.git "$HOME/social-auto-upload"
+          cd "$HOME/social-auto-upload"
+          uv pip install -e .
+          cp conf.example.py conf.py
+          uv run patchright install chromium
+
+      - name: Restore YouTube login state
+        env:
+          YOUTUBE_COOKIE_B64: ${{ secrets.YOUTUBE_COOKIE_B64 }}
+        run: |
+          mkdir -p "$HOME/social-auto-upload/cookies"
+          printf '%s' "$YOUTUBE_COOKIE_B64" | base64 -d > "$HOME/social-auto-upload/cookies/youtube_creator.json"
+          cd "$HOME/social-auto-upload"
+          uv run sau youtube check --account creator
+
+      - name: Run clipper
+        env:
+          PATH: "$HOME/.local/bin:$HOME/social-auto-upload/.venv/bin:$PATH"
+        run: uv run python run.py
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add processed.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update processed state [skip ci]"
+            git push
+          fi
