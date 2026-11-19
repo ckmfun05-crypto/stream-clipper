@@ -37,6 +37,13 @@ def setup_logging(config: dict) -> Path:
     file_handler = logging.FileHandler(log_file, encoding="utf-8")
     file_handler.setFormatter(fmt)
     log.addHandler(file_handler)
+
+    # Discovery/cut modules log under "clipper.*"; show their INFO/WARN messages
+    # too so cloud runs explain why no VOD was selected.
+    clipper_log = logging.getLogger("clipper")
+    clipper_log.setLevel(logging.INFO)
+    clipper_log.addHandler(console)
+    clipper_log.addHandler(file_handler)
     return log_file
 
 
@@ -154,6 +161,7 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:
         log.exception("Discovery failed: %s", exc)
         vods = []
+    log.info("Discovered %d new VODs: %s", len(vods), [v["id"] for v in vods[:10]])
 
     limit = int(config.get("max_clips_per_run", 0) or 0)
     remaining = limit if limit > 0 else None
