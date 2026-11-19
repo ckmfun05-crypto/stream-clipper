@@ -5,9 +5,9 @@ highlight moments from chat spikes, cuts vertical 9:16 clips, and uploads them
 to YouTube Shorts with streamer/game-aware titles and tags.
 
 **100% free:** no paid APIs, no subscriptions, no trials, no GPU. Built for a
-weak PC (~4 GB RAM). Uses `yt-dlp`, `ffmpeg`, `chat-downloader`, Twitch's public
-web data, and the open-source [`social-auto-upload`](https://github.com/dreammis/social-auto-upload)
-` sau` CLI.
+weak PC (~4 GB RAM). Uses `yt-dlp`, `ffmpeg`, Twitch's public web data (for
+both stream discovery and VOD chat replay), and the open-source
+[`social-auto-upload`](https://github.com/dreammis/social-auto-upload) `sau` CLI.
 
 > ⚠️ **Uploads are public by default** (as requested). Change
 > `upload.visibility` to `private` or `unlisted` in `config.yaml` if you want to
@@ -19,7 +19,8 @@ web data, and the open-source [`social-auto-upload`](https://github.com/dreammis
    the most viewers, using Twitch's public web GraphQL endpoint (no account,
    no API key, no registration). Falls back to a manual streamer list.
 2. **Find VODs** for those streamers with `yt-dlp`, filtered by GTA keywords.
-3. **Detect highlights** from chat-message-rate spikes (configurable).
+3. **Download VOD chat** via Twitch's public GraphQL (no login), sampling time
+   offsets in batches, then **detect highlights** from chat-rate spikes.
 4. **Cut** only the needed VOD sections with `yt-dlp --download-sections`, then
    center-crop/scale to 1080x1920 with `ffmpeg`.
 5. **Write metadata** from templates + frequent chat keywords around the

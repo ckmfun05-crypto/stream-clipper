@@ -11,9 +11,15 @@ discovery:
   # Manual fallback list (empty = auto-discover only).
   streamers: []
 
+chat:
+  sample_step_seconds: 10   # sample chat every N seconds (smaller = more accurate, more requests)
+  batch_size: 15            # offsets fetched per HTTP request (Twitch max: 15)
+  max_messages: 200000      # safety cap to protect low-RAM machines
+  max_seconds: 0            # 0 = whole VOD; e.g. 7200 = first 2 hours only
+
 highlights:
   window_seconds: 10
-  spike_factor: 3.0
+  spike_factor: 1.7   # sampling caps each request at 100 messages, which compresses spike ratios
   clip_before_seconds: 15
   clip_after_seconds: 20
   min_gap_seconds: 60

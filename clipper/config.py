@@ -13,9 +13,15 @@ DEFAULTS: dict[str, Any] = {
         "max_streams": 10,
         "streamers": [],
     },
+    "chat": {
+        "sample_step_seconds": 10,
+        "batch_size": 15,
+        "max_messages": 200000,
+        "max_seconds": 0,  # 0 = entire VOD; set e.g. 7200 to analyse only the first 2 hours
+    },
     "highlights": {
         "window_seconds": 10,
-        "spike_factor": 3.0,
+        "spike_factor": 1.7,
         "clip_before_seconds": 15,
         "clip_after_seconds": 20,
         "min_gap_seconds": 60,

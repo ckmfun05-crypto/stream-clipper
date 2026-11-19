@@ -49,7 +49,7 @@ def process_vod(vod: dict, config: dict, state: State, dry_run: bool) -> dict:
     state.add_vod(vod_id, streamer, vod["url"])
     state.save()
 
-    messages = chat_module.download_chat(vod["url"])
+    messages = chat_module.download_chat(vod["url"], config)
     if not messages:
         state.data["vods"][vod_id]["status"] = "no_chat"
         state.save()
