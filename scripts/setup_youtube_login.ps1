@@ -1,12 +1,14 @@
-# One-time YouTube login for stream-clipper.
+# One-time YouTube login for stream-clipper (100% free).
 # Run from anywhere in PowerShell:
 #   powershell -ExecutionPolicy Bypass -File .\scripts\setup_youtube_login.ps1
 #
-# It logs in with YOUR Google account, then stores the session as GitHub
-# secrets (Actions + Codespaces). The cookie never gets printed to chat.
+# It opens a REAL Brave window (Google blocks scripted Chrome logins), exports
+# the logged-in session, patches social-auto-upload's Studio auth check, then
+# stores the compressed session as GitHub secrets (Actions + Codespaces).
 $ErrorActionPreference = 'Stop'
 
-$Repo    = 'ckmfun05-crypto/stream-clipper'
+$Repo    = Split-Path -Parent $PSScriptRoot
+$Repo    = (Resolve-Path $Repo).Path
 $Account = 'creator'
 $Channel = 'https://www.youtube.com/@gta6xclips-e9o'
 $Gh      = "$env:USERPROFILE\.local\bin\gh.exe"
@@ -28,23 +30,53 @@ Set-Location $SauDir
 if (-not (Test-Path conf.py)) { Copy-Item conf.example.py conf.py }
 
 Write-Host "Installing dependencies..."
-& $Uv venv
-& $Uv pip install -e .
-& $Uv pip install patchright
+if (-not (Test-Path "$SauDir\.venv\Scripts\python.exe")) { & $Uv venv }
+& $Uv pip install --python "$SauDir\.venv\Scripts\python.exe" -e .
+& $Uv pip install --python "$SauDir\.venv\Scripts\python.exe" patchright
 & "$SauDir\.venv\Scripts\patchright.exe" install chromium
+& "$SauDir\.venv\Scripts\python.exe" "$Repo\scripts\patch_sau_youtube_auth.py" $SauDir
 
-Write-Host "Opening browser for Google login..."
-& "$SauDir\.venv\Scripts\sau.exe" youtube login --account $Account
+$braveCandidates = @(
+    "$env:ProgramFiles\BraveSoftware\Brave-Browser\Application\brave.exe",
+    "${env:ProgramFiles(x86)}\BraveSoftware\Brave-Browser\Application\brave.exe",
+    "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\Application\brave.exe"
+)
+$brave = $braveCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $brave) { throw "Brave was not found on this PC." }
+
+# Avoid clashing with an old debug window from a previous attempt.
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*--remote-debugging-port=9222*' } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+
+$profile = Join-Path $env:TEMP 'stream_clipper_brave_login'
+Write-Host "Opening a real Brave window for Google login..." -ForegroundColor Yellow
+Start-Process -FilePath $brave -ArgumentList @(
+    "--user-data-dir=$profile",
+    '--remote-debugging-port=9222',
+    '--no-first-run',
+    '--no-default-browser-check',
+    'https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fstudio.youtube.com%2F'
+)
+Write-Host "After you finish signing in, come back here and press Enter." -ForegroundColor Yellow
+Read-Host | Out-Null
+
+& "$SauDir\.venv\Scripts\python.exe" "$Repo\scripts\export_cdp_session.py"
+if ($LASTEXITCODE -ne 0) { throw "Session export failed." }
 & "$SauDir\.venv\Scripts\sau.exe" youtube check --account $Account
+if ($LASTEXITCODE -ne 0) { throw "Exported session did not pass sau's validity check." }
 
 $cookie = "$SauDir\cookies\youtube_$Account.json"
-if (-not (Test-Path $cookie)) {
-    throw "Login did not produce a cookie file at $cookie"
-}
+if (-not (Test-Path $cookie)) { throw "Login did not produce a cookie file at $cookie" }
 
-Write-Host "Saving session to GitHub secrets..."
-$b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($cookie))
-& $Gh secret set YOUTUBE_COOKIE_B64 --app actions --body $b64 -R $Repo
-& $Gh secret set YOUTUBE_COOKIE_B64 --user --app codespaces --body $b64
+Write-Host "Saving compressed session to GitHub secrets..."
+$tmp = Join-Path $env:TEMP 'stream_clipper_cookie_b64.txt'
+& "$SauDir\.venv\Scripts\python.exe" -c "import base64,gzip,pathlib,sys; src=pathlib.Path(sys.argv[1]); dst=pathlib.Path(sys.argv[2]); dst.write_text(base64.b64encode(gzip.compress(src.read_bytes(),mtime=0)).decode('ascii'),encoding='ascii')" $cookie $tmp
+if ($LASTEXITCODE -ne 0) { throw "Compression failed." }
+$value = [IO.File]::ReadAllText($tmp)
+$value | & $Gh secret set YOUTUBE_COOKIE_B64 --app actions --repo ckmfun05-crypto/stream-clipper
+if ($LASTEXITCODE -ne 0) { throw "Failed to set Actions secret." }
+$value | & $Gh secret set YOUTUBE_COOKIE_B64 --app codespaces --repo ckmfun05-crypto/stream-clipper
+if ($LASTEXITCODE -ne 0) { throw "Failed to set Codespaces secret." }
+Remove-Item $tmp -Force
 
 Write-Host "Done! The hourly GitHub Action can now upload to $Channel" -ForegroundColor Green

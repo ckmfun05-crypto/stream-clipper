@@ -18,6 +18,8 @@ concurrency:
 jobs:
   clip:
     runs-on: ubuntu-latest
+    env:
+      YOUTUBE_CHANNEL_NAME: GT6xCLIPS
     steps:
       - uses: actions/checkout@v4
 
@@ -27,38 +29,53 @@ jobs:
           python-version: "3.11"
 
       - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          uv --version
 
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install stream-clipper dependencies
         run: |
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          cd "$GITHUB_WORKSPACE"
           uv venv
-          uv pip install -e .
+          uv pip install --python "$GITHUB_WORKSPACE/.venv/bin/python" -e .
 
       - name: Install social-auto-upload
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           git clone https://github.com/dreammis/social-auto-upload.git "$HOME/social-auto-upload"
           cd "$HOME/social-auto-upload"
-          uv pip install -e .
           cp conf.example.py conf.py
-          uv run patchright install chromium
+          uv pip install --python "$GITHUB_WORKSPACE/.venv/bin/python" -e "."
+          uv pip install --python "$GITHUB_WORKSPACE/.venv/bin/python" patchright
+          "$GITHUB_WORKSPACE/.venv/bin/patchright" install chromium
+          "$GITHUB_WORKSPACE/.venv/bin/python" "$GITHUB_WORKSPACE/scripts/patch_sau_youtube_auth.py" "$HOME/social-auto-upload"
 
       - name: Restore YouTube login state
         env:
           YOUTUBE_COOKIE_B64: ${{ secrets.YOUTUBE_COOKIE_B64 }}
         run: |
           mkdir -p "$HOME/social-auto-upload/cookies"
-          printf '%s' "$YOUTUBE_COOKIE_B64" | base64 -d > "$HOME/social-auto-upload/cookies/youtube_creator.json"
-          cd "$HOME/social-auto-upload"
-          uv run sau youtube check --account creator
+          TMP_COOKIE="$(mktemp)"
+          printf '%s' "$YOUTUBE_COOKIE_B64" | base64 -d > "$TMP_COOKIE"
+          if gzip -t "$TMP_COOKIE" 2>/dev/null; then
+            gunzip -c "$TMP_COOKIE" > "$HOME/social-auto-upload/cookies/youtube_creator.json"
+          else
+            cp "$TMP_COOKIE" "$HOME/social-auto-upload/cookies/youtube_creator.json"
+          fi
+          rm -f "$TMP_COOKIE"
+          "$GITHUB_WORKSPACE/.venv/bin/sau" youtube check --account creator
 
       - name: Run clipper
-        env:
-          PATH: "$HOME/.local/bin:$HOME/social-auto-upload/.venv/bin:$PATH"
-        run: uv run python run.py
+        run: |
+          export PATH="$GITHUB_WORKSPACE/.venv/bin:$PATH"
+          cd "$GITHUB_WORKSPACE"
+          python run.py
 
       - name: Commit updated state
         run: |

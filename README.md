@@ -47,30 +47,33 @@ a browser.
 ### YouTube login for Codespaces
 
 **Easiest (Windows):** run `scripts/setup_youtube_login.ps1` from a PowerShell
-window. It logs you in with your Google account, then saves the session as both
-the Actions and Codespaces secrets automatically:
+window. It opens a **real Brave window** (Google blocks scripted Chrome logins),
+exports the session, then saves it as both the Actions and Codespaces secrets
+automatically:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\setup_youtube_login.ps1
 ```
 Log in with the Google account that owns
 `https://www.youtube.com/@gta6xclips-e9o`. You will not see or handle the cookie.
 
-**Manual:** Codespaces secrets are exposed as environment variables. Add a Codespaces
-secret (Settings → Codespaces → Secrets — **not** Actions secrets) named
-`YOUTUBE_COOKIE_B64` containing the base64 of the Playwright session file:
+**Manual:** secrets are exposed as environment variables. Add a secret named
+`YOUTUBE_COOKIE_B64` (as a **repository** secret for both Actions and Codespaces,
+or a user-level Codespaces secret) containing the **gzip-compressed base64** of
+the Playwright session file. Compression is needed because raw sessions can
+exceed GitHub's 48 KB secret limit:
 
 ```bash
-# One time, on any machine where you are logged in to YouTube:
-sau youtube login --account creator
-# Linux/macOS:
-base64 -w0 social-auto-upload/cookies/youtube_creator.json
-# Windows PowerShell:
-# [Convert]::ToBase64String([IO.File]::ReadAllBytes("social-auto-upload\cookies\youtube_creator.json"))
+# One time, on a machine where you are logged in to YouTube.
+# If Google blocks `sau youtube login`, use scripts/export_cdp_session.py
+# with a real Brave window on --remote-debugging-port=9222 instead.
+gzip -c social-auto-upload/cookies/youtube_creator.json | base64 -w0
 ```
 
-Paste the output as the secret value, then **rebuild the Codespace** (or run
-`bash .devcontainer/setup.sh`) so it restores
-`cookies/youtube_creator.json` and prints `YouTube login: valid`.
+Paste the output as the secret value, then **rebuild the Codespace** (or re-run
+the Action) so it restores `cookies/youtube_creator.json` and prints
+`YouTube login: valid`. Setup also applies
+`scripts/patch_sau_youtube_auth.py`, which teaches `sau` to dismiss YouTube's
+channel picker and "unsupported browser" interstitial.
 
 If you change the account name in `config.yaml`, also set the Codespaces secret
 `SAU_ACCOUNT` to the same value.

@@ -7,6 +7,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SAU_DIR="$(dirname "$REPO_DIR")/social-auto-upload"
 VENV_PY="$REPO_DIR/.venv/bin/python"
 ACCOUNT="${SAU_ACCOUNT:-creator}"
+export YOUTUBE_CHANNEL_NAME="${YOUTUBE_CHANNEL_NAME:-GT6xCLIPS}"
 
 echo "==> Installing system packages"
 sudo apt-get update -qq
@@ -32,11 +33,19 @@ cd "$SAU_DIR"
 uv pip install --python "$VENV_PY" -e "$SAU_DIR"
 uv pip install --python "$VENV_PY" patchright
 "$REPO_DIR/.venv/bin/patchright" install chromium
+"$VENV_PY" "$REPO_DIR/scripts/patch_sau_youtube_auth.py" "$SAU_DIR"
 
 echo "==> Restoring YouTube login (if Codespaces secret is set)"
 if [ -n "${YOUTUBE_COOKIE_B64:-}" ]; then
   mkdir -p "$SAU_DIR/cookies"
-  printf '%s' "$YOUTUBE_COOKIE_B64" | base64 -d > "$SAU_DIR/cookies/youtube_${ACCOUNT}.json"
+  TMP_COOKIE="$(mktemp)"
+  printf '%s' "$YOUTUBE_COOKIE_B64" | base64 -d > "$TMP_COOKIE"
+  if gzip -t "$TMP_COOKIE" 2>/dev/null; then
+    gunzip -c "$TMP_COOKIE" > "$SAU_DIR/cookies/youtube_${ACCOUNT}.json"
+  else
+    cp "$TMP_COOKIE" "$SAU_DIR/cookies/youtube_${ACCOUNT}.json"
+  fi
+  rm -f "$TMP_COOKIE"
   if "$REPO_DIR/.venv/bin/sau" youtube check --account "$ACCOUNT"; then
     echo "YouTube login: valid"
   else
