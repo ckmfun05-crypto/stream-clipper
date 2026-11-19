@@ -28,6 +28,51 @@ both stream discovery and VOD chat replay), and the open-source
 6. **Upload** to YouTube Shorts with `sau youtube upload-video`.
 7. **Remember** processed VODs in `processed.json` (atomic writes).
 
+## Run in GitHub Codespaces (recommended — no big downloads on your PC)
+
+The repo includes a `.devcontainer`, so GitHub spins up a ready-made Linux
+machine with Python, `uv`, `ffmpeg`, Chromium and `sau` already installed. All
+VOD downloading, cutting and uploading happens in the cloud; your PC only runs
+a browser.
+
+1. On the repo page click **Code → Codespaces → Create codespace on main**.
+2. Wait for `.devcontainer/setup.sh` to finish (it installs everything).
+3. In the Codespace terminal, from the repo folder:
+
+   ```bash
+   uv run python run.py --dry-run   # cut clips, no upload
+   uv run python run.py             # full run with upload
+   ```
+
+### YouTube login for Codespaces
+
+Codespaces secrets are exposed as environment variables. Add a Codespaces
+secret (Settings → Codespaces → Secrets — **not** Actions secrets) named
+`YOUTUBE_COOKIE_B64` containing the base64 of the Playwright session file:
+
+```bash
+# One time, on any machine where you are logged in to YouTube:
+sau youtube login --account creator
+# Linux/macOS:
+base64 -w0 social-auto-upload/cookies/youtube_creator.json
+# Windows PowerShell:
+# [Convert]::ToBase64String([IO.File]::ReadAllBytes("social-auto-upload\cookies\youtube_creator.json"))
+```
+
+Paste the output as the secret value, then **rebuild the Codespace** (or run
+`bash .devcontainer/setup.sh`) so it restores
+`cookies/youtube_creator.json` and prints `YouTube login: valid`.
+
+If you change the account name in `config.yaml`, also set the Codespaces secret
+`SAU_ACCOUNT` to the same value.
+
+> **Important limits:** Codespaces is free for personal accounts only up to the
+> monthly included hours (60 h/month on the 2-core machine); after that it is
+> paid. Also, Codespaces runs in a data centre, so Twitch/YouTube may block
+> some traffic and the YouTube login session expires — re-login and refresh the
+> secret when `sau youtube check` says `invalid`. Your own PC remains the most
+> reliable place for the actual upload.
+
 ## Requirements
 
 - Python 3.10–3.12
