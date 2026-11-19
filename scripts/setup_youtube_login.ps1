@@ -48,4 +48,3 @@ $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($cookie))
 & $Gh secret set YOUTUBE_COOKIE_B64 --user --app codespaces --body $b64
 
 Write-Host "Done! The hourly GitHub Action can now upload to $Channel" -ForegroundColor Green
-Read-Host "Press Enter to close"
