@@ -139,7 +139,7 @@ def find_recent_vods(streamer: dict[str, Any], config: dict[str, Any]) -> list[d
         title = entry.get("title") or ""
         if keywords and not any(k in title.lower() for k in keywords):
             continue
-        vod_id = str(entry.get("id") or "")
+        vod_id = str(entry.get("id") or "").removeprefix("v")
         if not vod_id.isdigit():
             continue
         vods.append({
