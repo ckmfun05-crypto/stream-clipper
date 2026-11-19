@@ -112,6 +112,18 @@ HANDLE_PATTERN = re.compile(
     r"async def _handle_youtube_prompts\(page, channel_name: str\) -> None:.*?(?=\nasync def cookie_auth)",
     re.DOTALL,
 )
+VERIFY_PATTERN = re.compile(
+    r"async def _dismiss_auth_confirmation\(page: Page\) -> bool:.*?(?=\nasync def _dismiss_autocomplete)",
+    re.DOTALL,
+)
+EDITABLE_PATTERN = re.compile(
+    r"async def _fill_editable\(page: Page, selector: str, text: str\):.*?(?=\nasync def _click_if_present)",
+    re.DOTALL,
+)
+CLICK_PATTERN = re.compile(
+    r"async def _click_if_present\(page: Page, selector: str, timeout: int = 4000\) -> bool:.*?(?=\nasync def _wait_upload_complete)",
+    re.DOTALL,
+)
 
 UPLOAD_LAUNCH_OLD = 'headless=self.headless, channel="chrome",'
 UPLOAD_LAUNCH_NEW = 'headless=self.headless,'
@@ -124,15 +136,24 @@ UPLOAD_GOTO_NEW = '''await page.goto(UPLOAD_URL, wait_until="domcontentloaded")
 # appears, otherwise it blocks every later click.
 VERIFY_HELPER = '''async def _dismiss_auth_confirmation(page: Page) -> bool:
     """Handle YouTube Studio's 'Verify that it's you' dialog if present."""
-    dialog = page.locator("ytcp-auth-confirmation-dialog, ytcp-confirmation-dialog")
-    try:
-        if not await dialog.count() or not await dialog.first.is_visible():
-            return False
-    except Exception:
+    dialog = None
+    for selector in ("ytcp-auth-confirmation-dialog", "ytcp-confirmation-dialog"):
+        locator = page.locator(selector)
+        try:
+            for index in range(await locator.count()):
+                if await locator.nth(index).is_visible():
+                    dialog = locator.nth(index)
+                    break
+        except Exception:
+            pass
+        if dialog is not None:
+            break
+    if dialog is None:
         return False
     print("YouTube verification dialog detected", flush=True)
     try:
-        print("VERIFY DIALOG:", (await dialog.first.inner_text())[:500], flush=True)
+        print("VERIFY DIALOG:", (await dialog.inner_text())[:500], flush=True)
+        print("VERIFY HTML:", (await dialog.inner_html())[:1500], flush=True)
     except Exception:
         pass
     for frame in page.frames:
@@ -145,19 +166,57 @@ VERIFY_HELPER = '''async def _dismiss_auth_confirmation(page: Page) -> bool:
                 break
         except Exception:
             pass
-    dialog = page.locator("ytcp-auth-confirmation-dialog, ytcp-confirmation-dialog")
-    if await dialog.count():
-        for label in ("Continue", "Confirm", "Verify", "Yes, it's me", "I'm not a robot"):
-            try:
-                button = dialog.get_by_text(label, exact=False).last
-                if await button.count():
-                    await button.click(timeout=5000)
-                    print(f"Clicked verification button: {label}", flush=True)
-                    break
-            except Exception:
-                pass
+    for label in ("Continue", "Confirm", "Verify", "Yes, it's me", "I'm not a robot"):
+        try:
+            button = dialog.get_by_text(label, exact=False).last
+            if await button.count():
+                await button.click(timeout=5000)
+                print(f"Clicked verification button: {label}", flush=True)
+                break
+        except Exception:
+            pass
     await page.wait_for_timeout(1000)
     return True
+
+
+'''
+
+NEW_EDITABLE = '''async def _fill_editable(page: Page, selector: str, text: str):
+    """Fill a YouTube Studio contenteditable box, retrying past blockers."""
+    await _dismiss_auth_confirmation(page)
+    box = page.locator(selector).first
+    await box.wait_for(state="visible", timeout=30000)
+    for attempt in range(3):
+        try:
+            await box.click(timeout=10000)
+            break
+        except Exception:
+            if not await _dismiss_auth_confirmation(page) and attempt == 2:
+                raise
+    await page.keyboard.press("Control+A")
+    await page.keyboard.press("Delete")
+    try:
+        await box.fill(text)
+    except Exception:
+        await box.type(text, delay=6)
+    await page.wait_for_timeout(400)
+    await _dismiss_autocomplete(page)
+
+
+'''
+
+NEW_CLICK = '''async def _click_if_present(page: Page, selector: str, timeout: int = 4000) -> bool:
+    for attempt in range(3):
+        await _dismiss_auth_confirmation(page)
+        try:
+            el = page.locator(selector).first
+            await el.wait_for(state="visible", timeout=timeout)
+            await el.click(timeout=10000)
+            return True
+        except Exception:
+            if not await _dismiss_auth_confirmation(page):
+                return False
+    return False
 
 
 '''
@@ -196,25 +255,19 @@ def patch(sau_dir: Path) -> None:
     while call + call in text:
         text = text.replace(call + call, call)
 
-    # Add the verification-dialog helper and call it before every user action.
-    if "_dismiss_auth_confirmation" not in text:
+    # Add the verification-dialog helper and retry helper actions past it.
+    if VERIFY_PATTERN.search(text):
+        text = VERIFY_PATTERN.sub(lambda _: VERIFY_HELPER, text, count=1)
+    else:
         text = text.replace(
             "async def _dismiss_autocomplete(page: Page):",
             VERIFY_HELPER + "async def _dismiss_autocomplete(page: Page):",
             1,
         )
-    text = text.replace(
-        "async def _click_if_present(page: Page, selector: str, timeout: int = 4000) -> bool:\n    try:",
-        "async def _click_if_present(page: Page, selector: str, timeout: int = 4000) -> bool:\n"
-        "    await _dismiss_auth_confirmation(page)\n    try:",
-        1,
-    )
-    text = text.replace(
-        "    box = page.locator(selector).first\n    await box.wait_for(state=\"visible\", timeout=30000)",
-        "    await _dismiss_auth_confirmation(page)\n"
-        "    box = page.locator(selector).first\n    await box.wait_for(state=\"visible\", timeout=30000)",
-        1,
-    )
+    if EDITABLE_PATTERN.search(text):
+        text = EDITABLE_PATTERN.sub(lambda _: NEW_EDITABLE, text, count=1)
+    if CLICK_PATTERN.search(text):
+        text = CLICK_PATTERN.sub(lambda _: NEW_CLICK, text, count=1)
     text = text.replace(
         "        await page.wait_for_timeout(3000)\n        if \"accounts.google.com\" in page.url",
         "        await _dismiss_auth_confirmation(page)\n"
