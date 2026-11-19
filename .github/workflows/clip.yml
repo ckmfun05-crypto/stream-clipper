@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: "0 * * * *"   # every hour
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Cut a clip but skip uploading (safe test)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -72,10 +77,16 @@ jobs:
           "$GITHUB_WORKSPACE/.venv/bin/sau" youtube check --account creator
 
       - name: Run clipper
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           export PATH="$GITHUB_WORKSPACE/.venv/bin:$PATH"
           cd "$GITHUB_WORKSPACE"
-          python run.py
+          if [ "$DRY_RUN" = "true" ]; then
+            python run.py --dry-run
+          else
+            python run.py
+          fi
 
       - name: Commit updated state
         run: |
