@@ -14,28 +14,58 @@ import sys
 from pathlib import Path
 
 NEW_FUNCTION = '''async def _handle_youtube_prompts(page, channel_name: str) -> None:
-    """Dismiss YouTube's channel picker and unsupported-browser interstitial."""
+    """Dismiss YouTube's channel picker and unsupported-browser interstitial.
+
+    The interstitial can appear on a /channel/ URL, so do not treat that URL as
+    proof that the page is ready. Click SKIP first, then verify the page.
+    """
     for _ in range(45):  # up to ~45 seconds
         url = page.url
-        if "/channel/" in url or "accounts.google.com" in url:
+        if "accounts.google.com" in url:
             return
-        if "studio.youtube.com" in url and "signin_prompt" not in url:
-            try:
-                if "Your channel" in await page.locator("body").inner_text(timeout=3000):
-                    return
-            except Exception:
-                pass
         try:
-            # The channel picker can appear on studio home as well as on a
-            # signin_prompt URL, so always try it instead of keying off the URL.
-            channel = page.get_by_text(channel_name, exact=False)
-            if await channel.count():
-                await channel.first.click(timeout=5000)
             skip = page.get_by_text("SKIP TO YOUTUBE STUDIO", exact=False)
             if await skip.count():
                 await skip.first.click(timeout=5000)
+                await page.wait_for_timeout(1500)
+                continue
+            # Only click a channel name when the actual picker is present;
+            # the sidebar also shows the channel name on the upload page.
+            picker = page.get_by_text("Select a channel", exact=False)
+            if await picker.count():
+                channel = page.get_by_text(channel_name, exact=False)
+                if await channel.count():
+                    await channel.first.click(timeout=5000)
+                    await page.wait_for_timeout(1500)
+                    continue
         except Exception:
             pass
+        try:
+            body = await page.locator("body").inner_text(timeout=3000)
+        except Exception:
+            body = ""
+        try:
+            file_ready = await page.locator('input[type="file"]').count() > 0
+        except Exception:
+            file_ready = False
+        content_ready = any(
+            marker in body
+            for marker in (
+                "Channel dashboard", "Channel content", "Your channel",
+                "Upload video", "Select files", "Drag and drop",
+            )
+        )
+        ready = (
+            "SKIP TO YOUTUBE STUDIO" not in body
+            and "Select a channel" not in body
+            and "Oops" not in body
+            and "signin_prompt" not in page.url
+            and "youtube.com" in page.url
+            and "accounts.google.com" not in page.url
+            and (file_ready or content_ready)
+        )
+        if ready:
+            return
         await page.wait_for_timeout(1000)
 
 
@@ -78,6 +108,10 @@ PATTERN = re.compile(
     r"async def cookie_auth\(account_file\) -> bool:.*?(?=\nasync def youtube_cookie_gen)",
     re.DOTALL,
 )
+HANDLE_PATTERN = re.compile(
+    r"async def _handle_youtube_prompts\(page, channel_name: str\) -> None:.*?(?=\nasync def cookie_auth)",
+    re.DOTALL,
+)
 
 UPLOAD_LAUNCH_OLD = 'headless=self.headless, channel="chrome",'
 UPLOAD_LAUNCH_NEW = 'headless=self.headless,'
@@ -100,14 +134,24 @@ def patch(sau_dir: Path) -> None:
     text = target.read_text(encoding="utf-8")
     original = text
 
-    if "SKIP TO YOUTUBE STUDIO" not in text:
-        if not PATTERN.search(text):
-            raise RuntimeError(f"Could not locate cookie_auth() in {target}")
+    if not PATTERN.search(text) and not HANDLE_PATTERN.search(text):
+        raise RuntimeError(f"Could not locate YouTube auth functions in {target}")
+
+    # Always replace the prompt handler so upgrades pick up the /channel/ fix.
+    if HANDLE_PATTERN.search(text):
+        text = HANDLE_PATTERN.sub(lambda _: NEW_FUNCTION + "\n\n", text, count=1)
+    else:
         text = PATTERN.sub(lambda _: NEW_FUNCTION + "\n\n", text, count=1)
-        if GLOBAL_IMPORT_ANCHOR in text and "\nimport os\n" not in text:
-            text = text.replace(GLOBAL_IMPORT_ANCHOR, GLOBAL_IMPORT_ANCHOR + "import os\n", 1)
-        text = text.replace(UPLOAD_LAUNCH_OLD, UPLOAD_LAUNCH_NEW)
+
+    if GLOBAL_IMPORT_ANCHOR in text and "\nimport os\n" not in text:
+        text = text.replace(GLOBAL_IMPORT_ANCHOR, GLOBAL_IMPORT_ANCHOR + "import os\n", 1)
+    text = text.replace(UPLOAD_LAUNCH_OLD, UPLOAD_LAUNCH_NEW)
+    if UPLOAD_GOTO_OLD in text:
         text = text.replace(UPLOAD_GOTO_OLD, UPLOAD_GOTO_NEW, 1)
+    # Older patch runs may have inserted the handler twice; keep one call.
+    call = '        await _handle_youtube_prompts(page, os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS"))\n'
+    while call + call in text:
+        text = text.replace(call + call, call)
 
     # Upgrade installs patched by an older version of this script.
     text = text.replace(
