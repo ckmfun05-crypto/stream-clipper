@@ -15,7 +15,7 @@ chat:
   sample_step_seconds: 10   # sample chat every N seconds (smaller = more accurate, more requests)
   batch_size: 15            # offsets fetched per HTTP request (Twitch max: 15)
   max_messages: 200000      # safety cap to protect low-RAM machines
-  max_seconds: 0            # 0 = whole VOD; e.g. 7200 = first 2 hours only
+  max_seconds: 3600         # only sample the first hour of chat (keeps hourly runs fast)
 
 highlights:
   window_seconds: 10
