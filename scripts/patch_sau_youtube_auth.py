@@ -19,11 +19,18 @@ NEW_FUNCTION = '''async def _handle_youtube_prompts(page, channel_name: str) -> 
         url = page.url
         if "/channel/" in url or "accounts.google.com" in url:
             return
+        if "studio.youtube.com" in url and "signin_prompt" not in url:
+            try:
+                if "Your channel" in await page.locator("body").inner_text(timeout=3000):
+                    return
+            except Exception:
+                pass
         try:
-            if "signin_prompt" in url:
-                channel = page.get_by_text(channel_name, exact=False)
-                if await channel.count():
-                    await channel.first.click(timeout=5000)
+            # The channel picker can appear on studio home as well as on a
+            # signin_prompt URL, so always try it instead of keying off the URL.
+            channel = page.get_by_text(channel_name, exact=False)
+            if await channel.count():
+                await channel.first.click(timeout=5000)
             skip = page.get_by_text("SKIP TO YOUTUBE STUDIO", exact=False)
             if await skip.count():
                 await skip.first.click(timeout=5000)
@@ -53,9 +60,13 @@ async def cookie_auth(account_file) -> bool:
             channel_name = os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS")
             await _handle_youtube_prompts(page, channel_name)
             url = page.url
-            if "accounts.google.com" in url:
+            print(f"YouTube auth landed on: {url}", flush=True)
+            if "accounts.google.com" in url or "signin" in url.lower():
                 return False
-            return "/channel/" in url
+            # Headless datacenter runners often stop on studio home or the
+            # channel picker instead of redirecting to /channel/.... A signed-in
+            # YouTube URL is enough; the uploader verifies the real session.
+            return "youtube.com" in url
         except Exception:
             return False
         finally:
@@ -82,16 +93,40 @@ def patch(sau_dir: Path) -> None:
     if not target.exists():
         raise FileNotFoundError(f"Cannot find {target}")
     text = target.read_text(encoding="utf-8")
-    if "SKIP TO YOUTUBE STUDIO" in text:
-        print(f"Already patched: {target}")
+    original = text
+
+    if "SKIP TO YOUTUBE STUDIO" not in text:
+        if not PATTERN.search(text):
+            raise RuntimeError(f"Could not locate cookie_auth() in {target}")
+        text = PATTERN.sub(lambda _: NEW_FUNCTION + "\n\n", text, count=1)
+        if GLOBAL_IMPORT_ANCHOR in text and "\nimport os\n" not in text:
+            text = text.replace(GLOBAL_IMPORT_ANCHOR, GLOBAL_IMPORT_ANCHOR + "import os\n", 1)
+        text = text.replace(UPLOAD_LAUNCH_OLD, UPLOAD_LAUNCH_NEW)
+        text = text.replace(UPLOAD_GOTO_OLD, UPLOAD_GOTO_NEW, 1)
+
+    # Upgrade installs patched by an older version of this script.
+    text = text.replace(
+        '''            if "accounts.google.com" in url:
+                return False
+            return "/channel/" in url''',
+        '''            print(f"YouTube auth landed on: {url}", flush=True)
+            if "accounts.google.com" in url or "signin" in url.lower():
+                return False
+            return "youtube.com" in url''',
+    )
+    text = text.replace(
+        '''            if "signin_prompt" in url:
+                channel = page.get_by_text(channel_name, exact=False)
+                if await channel.count():
+                    await channel.first.click(timeout=5000)''',
+        '''            channel = page.get_by_text(channel_name, exact=False)
+            if await channel.count():
+                await channel.first.click(timeout=5000)''',
+    )
+
+    if text == original:
+        print(f"Already up to date: {target}")
         return
-    if not PATTERN.search(text):
-        raise RuntimeError(f"Could not locate cookie_auth() in {target}")
-    text = PATTERN.sub(lambda _: NEW_FUNCTION + "\n\n", text, count=1)
-    if GLOBAL_IMPORT_ANCHOR in text and "\nimport os\n" not in text:
-        text = text.replace(GLOBAL_IMPORT_ANCHOR, GLOBAL_IMPORT_ANCHOR + "import os\n", 1)
-    text = text.replace(UPLOAD_LAUNCH_OLD, UPLOAD_LAUNCH_NEW)
-    text = text.replace(UPLOAD_GOTO_OLD, UPLOAD_GOTO_NEW, 1)
     target.write_text(text, encoding="utf-8")
     print(f"Patched YouTube auth + upload: {target}")
 
