@@ -44,24 +44,36 @@ $braveCandidates = @(
 $brave = $braveCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $brave) { throw "Brave was not found on this PC." }
 
-# Avoid clashing with an old debug window from a previous attempt.
-Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*--remote-debugging-port=9222*' } |
-    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+# Use your MAIN Brave profile (with your existing Google login), not a new one.
+$profile = Join-Path $env:LOCALAPPDATA 'BraveSoftware\Brave-Browser\User Data'
+if (-not (Test-Path $profile)) { throw "Main Brave profile was not found at $profile" }
 
-$profile = Join-Path $env:TEMP 'stream_clipper_brave_login'
-Write-Host "Opening a real Brave window for Google login..." -ForegroundColor Yellow
+Write-Host "Restarting Brave briefly to export your main profile's session..." -ForegroundColor Yellow
+Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'brave.exe' } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Seconds 2
 Start-Process -FilePath $brave -ArgumentList @(
-    "--user-data-dir=$profile",
+    "--user-data-dir=`"$profile`"",
     '--remote-debugging-port=9222',
+    '--remote-allow-origins=*',
     '--no-first-run',
     '--no-default-browser-check',
-    'https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fstudio.youtube.com%2F'
-)
-Write-Host "After you finish signing in, come back here and press Enter." -ForegroundColor Yellow
-Read-Host | Out-Null
+    '--restore-last-session',
+    'about:blank'
+) | Out-Null
+Start-Sleep -Seconds 5
 
 & "$SauDir\.venv\Scripts\python.exe" "$Repo\scripts\export_cdp_session.py"
-if ($LASTEXITCODE -ne 0) { throw "Session export failed." }
+$exportFailed = $LASTEXITCODE -ne 0
+
+# Reopen Brave normally, restoring the user's tabs.
+Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'brave.exe' } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Seconds 2
+Start-Process -FilePath $brave -ArgumentList @('--restore-last-session') | Out-Null
+
+if ($exportFailed) { throw "Session export failed." }
+$env:YOUTUBE_CHANNEL_NAME = 'GT6xCLIPS'
 & "$SauDir\.venv\Scripts\sau.exe" youtube check --account $Account
 if ($LASTEXITCODE -ne 0) { throw "Exported session did not pass sau's validity check." }
 

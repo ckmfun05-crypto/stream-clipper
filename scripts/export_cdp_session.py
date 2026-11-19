@@ -40,16 +40,24 @@ def main() -> None:
             raise RuntimeError("Not logged in yet — sign in to YouTube Studio in the Brave window first")
 
         storage = context.storage_state()
-        # Cookies are enough for Studio auth; dropping localStorage keeps the
-        # exported file small enough to fit in a GitHub secret.
+        # Keep localStorage: Google uses it to silently refresh the short-lived
+        # SID/RTS tokens. Cookie-only exports die after ~15 minutes.
         cookies = [
             c for c in storage.get("cookies", [])
             if "google" in c.get("domain", "") or "youtube" in c.get("domain", "")
         ]
-        print(f"exported {len(cookies)} Google/YouTube cookies")
+        origins = [
+            o for o in storage.get("origins", [])
+            if "google" in o.get("origin", "") or "youtube" in o.get("origin", "")
+        ]
+        state = {"cookies": cookies, "origins": origins}
+        local_items = sum(len(o.get("localStorage", [])) for o in origins)
+        print(f"exported {len(cookies)} cookies, {len(origins)} origins, {local_items} localStorage items")
+        if not origins or local_items == 0:
+            raise RuntimeError("No localStorage was exported — the session will expire quickly. Sign in again.")
         SAU_COOKIES.mkdir(parents=True, exist_ok=True)
         out = SAU_COOKIES / f"youtube_{ACCOUNT}.json"
-        out.write_text(json.dumps({"cookies": cookies, "origins": []}, separators=(",", ":")), encoding="utf-8")
+        out.write_text(json.dumps(state, separators=(",", ":")), encoding="utf-8")
         print(f"wrote {out}")
         browser.close()
 
