@@ -17,6 +17,21 @@
       "url": "https://www.twitch.tv/videos/2930974223",
       "status": "dry_run",
       "clips": []
+    },
+    "2933504535": {
+      "streamer": "shadowkekw",
+      "url": "https://www.twitch.tv/videos/2933504535",
+      "status": "dry_run",
+      "clips": [
+        {
+          "file": "clips/2933504535_01.mp4",
+          "start": 1185.0,
+          "end": 1350.0,
+          "score": 50,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
