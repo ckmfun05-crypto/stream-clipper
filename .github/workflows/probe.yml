@@ -4,7 +4,7 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - uses: actions/setup-python@v5
         with:
@@ -18,35 +18,17 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg >/dev/null
           ffmpeg -version | head -1
-      - name: Test Twitch downloads
+      - name: Test deep HLS seeks
         run: |
           VOD=https://www.twitch.tv/videos/2933192897
           YDL="$PWD/.venv/bin/yt-dlp"
-          echo "=== A: production options (1080p + force keyframes) ==="
-          START=$SECONDS
-          timeout 180s "$YDL" --no-playlist --no-warnings \
-            -f 'bestvideo[height<=1080]+bestaudio/best' --merge-output-format mp4 \
-            --socket-timeout 30 --retries 2 --fragment-retries 2 \
-            --download-sections '*60-90' --force-keyframes-at-cuts \
-            -o /tmp/probeA "$VOD" 2>&1 | tail -c 3000
-          echo "A exit=$? elapsed=$((SECONDS-START))s size=$(stat -c%s /tmp/probeA.mp4 2>/dev/null || echo 0)"
-          echo "=== B: 720p single stream, no force keyframes ==="
-          START=$SECONDS
-          timeout 90s "$YDL" --no-playlist --no-warnings \
-            -f 'best[height<=720]/best' --merge-output-format mp4 \
-            --socket-timeout 30 --retries 1 --fragment-retries 1 \
-            --download-sections '*60-90' -o /tmp/probeB "$VOD" 2>&1 | tail -c 3000
-          echo "B exit=$? elapsed=$((SECONDS-START))s size=$(stat -c%s /tmp/probeB.mp4 2>/dev/null || echo 0)"
-          echo "=== C: 480p single stream, no force keyframes ==="
-          START=$SECONDS
-          timeout 90s "$YDL" --no-playlist --no-warnings \
-            -f 'best[height<=480]/best' --merge-output-format mp4 \
-            --socket-timeout 30 --retries 1 --fragment-retries 1 \
-            --download-sections '*60-90' -o /tmp/probeC "$VOD" 2>&1 | tail -c 3000
-          echo "C exit=$? elapsed=$((SECONDS-START))s size=$(stat -c%s /tmp/probeC.mp4 2>/dev/null || echo 0)"
-          echo "=== D: direct m3u8, no yt-dlp, 30s via ffmpeg ==="
-          START=$SECONDS
           URL=$(timeout 30s "$YDL" -g -f 'best[height<=720]/best' "$VOD" 2>/dev/null | head -1)
           echo "url=${URL:0:120}"
-          timeout 60s ffmpeg -y -loglevel error -ss 60 -i "$URL" -t 30 -c copy -bsf:a aac_adtstoasc /tmp/probeD.mp4 2>&1 | tail -c 2000
-          echo "D exit=$? elapsed=$((SECONDS-START))s size=$(stat -c%s /tmp/probeD.mp4 2>/dev/null || echo 0)"
+          for START in 1800 3600; do
+            echo "=== ffmpeg -ss $START duration 30 ==="
+            S=$SECONDS
+            timeout 90s ffmpeg -y -loglevel error -ss "$START" -i "$URL" -t 30 \
+              -map 0:v:0 -map 0:a:0? -c copy -bsf:a aac_adtstoasc -movflags +faststart \
+              "/tmp/deep${START}.mp4" 2>&1 | tail -c 1000
+            echo "ss=$START elapsed=$((SECONDS-S))s size=$(stat -c%s /tmp/deep${START}.mp4 2>/dev/null || echo 0) duration=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/deep${START}.mp4 2>/dev/null || echo 0)"
+          done
