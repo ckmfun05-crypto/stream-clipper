@@ -137,6 +137,14 @@ def patch(sau_dir: Path) -> None:
             await page.goto(f"https://studio.youtube.com/channel/{channel_id}", wait_until="domcontentloaded")
             channel_name = os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS")''',
     )
+    text = text.replace(
+        '''        await _handle_youtube_prompts(page, os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS"))
+        await page.wait_for_timeout(3000)''',
+        '''        await _handle_youtube_prompts(page, os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS"))
+        print(f"YouTube upload landed on: {page.url}", flush=True)
+        print("UPLOAD PAGE:", (await page.locator("body").inner_text())[:500], flush=True)
+        await page.wait_for_timeout(3000)''',
+    )
 
     if text != original:
         target.write_text(text, encoding="utf-8")
