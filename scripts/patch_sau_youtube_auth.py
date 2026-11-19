@@ -119,6 +119,49 @@ UPLOAD_GOTO_OLD = 'await page.goto(UPLOAD_URL, wait_until="domcontentloaded")'
 UPLOAD_GOTO_NEW = '''await page.goto(UPLOAD_URL, wait_until="domcontentloaded")
         await _handle_youtube_prompts(page, os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS"))'''
 
+# YouTube Studio can show a "Verify that it's you" reCAPTCHA dialog on the
+# datacenter IP. Solve the checkbox or press the confirmation button when it
+# appears, otherwise it blocks every later click.
+VERIFY_HELPER = '''async def _dismiss_auth_confirmation(page: Page) -> bool:
+    """Handle YouTube Studio's 'Verify that it's you' dialog if present."""
+    dialog = page.locator("ytcp-auth-confirmation-dialog, ytcp-confirmation-dialog")
+    try:
+        if not await dialog.count() or not await dialog.first.is_visible():
+            return False
+    except Exception:
+        return False
+    print("YouTube verification dialog detected", flush=True)
+    try:
+        print("VERIFY DIALOG:", (await dialog.first.inner_text())[:500], flush=True)
+    except Exception:
+        pass
+    for frame in page.frames:
+        try:
+            anchor = frame.locator("#recaptcha-anchor")
+            if await anchor.count():
+                await anchor.click(timeout=8000)
+                print("Clicked reCAPTCHA checkbox", flush=True)
+                await page.wait_for_timeout(3000)
+                break
+        except Exception:
+            pass
+    dialog = page.locator("ytcp-auth-confirmation-dialog, ytcp-confirmation-dialog")
+    if await dialog.count():
+        for label in ("Continue", "Confirm", "Verify", "Yes, it's me", "I'm not a robot"):
+            try:
+                button = dialog.get_by_text(label, exact=False).last
+                if await button.count():
+                    await button.click(timeout=5000)
+                    print(f"Clicked verification button: {label}", flush=True)
+                    break
+            except Exception:
+                pass
+    await page.wait_for_timeout(1000)
+    return True
+
+
+'''
+
 # Upstream sau calls a method its YouTubeVideo class does not implement.
 SCHEDULE_OLD = "\n    app.set_publish_date(request.schedule)\n"
 SCHEDULE_NEW = "\n    if hasattr(app, \"set_publish_date\"):\n        app.set_publish_date(request.schedule)\n"
@@ -152,6 +195,33 @@ def patch(sau_dir: Path) -> None:
     call = '        await _handle_youtube_prompts(page, os.environ.get("YOUTUBE_CHANNEL_NAME", "GT6xCLIPS"))\n'
     while call + call in text:
         text = text.replace(call + call, call)
+
+    # Add the verification-dialog helper and call it before every user action.
+    if "_dismiss_auth_confirmation" not in text:
+        text = text.replace(
+            "async def _dismiss_autocomplete(page: Page):",
+            VERIFY_HELPER + "async def _dismiss_autocomplete(page: Page):",
+            1,
+        )
+    text = text.replace(
+        "async def _click_if_present(page: Page, selector: str, timeout: int = 4000) -> bool:\n    try:",
+        "async def _click_if_present(page: Page, selector: str, timeout: int = 4000) -> bool:\n"
+        "    await _dismiss_auth_confirmation(page)\n    try:",
+        1,
+    )
+    text = text.replace(
+        "    box = page.locator(selector).first\n    await box.wait_for(state=\"visible\", timeout=30000)",
+        "    await _dismiss_auth_confirmation(page)\n"
+        "    box = page.locator(selector).first\n    await box.wait_for(state=\"visible\", timeout=30000)",
+        1,
+    )
+    text = text.replace(
+        "        await page.wait_for_timeout(3000)\n        if \"accounts.google.com\" in page.url",
+        "        await _dismiss_auth_confirmation(page)\n"
+        "        await page.wait_for_timeout(3000)\n"
+        "        if \"accounts.google.com\" in page.url",
+        1,
+    )
 
     # Upgrade installs patched by an older version of this script.
     text = text.replace(
