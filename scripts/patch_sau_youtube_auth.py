@@ -140,43 +140,87 @@ VERIFY_HELPER = '''async def _dismiss_auth_confirmation(page: Page) -> bool:
     for selector in ("ytcp-auth-confirmation-dialog", "ytcp-confirmation-dialog"):
         locator = page.locator(selector)
         try:
-            for index in range(await locator.count()):
-                if await locator.nth(index).is_visible():
-                    dialog = locator.nth(index)
-                    break
+            if await locator.count():
+                # Do not rely on is_visible(): the custom element can report
+                # hidden while a child in its shadow DOM blocks clicks.
+                dialog = locator.first
+                break
         except Exception:
             pass
-        if dialog is not None:
-            break
     if dialog is None:
         return False
     print("YouTube verification dialog detected", flush=True)
     try:
         print("VERIFY DIALOG:", (await dialog.inner_text())[:500], flush=True)
         print("VERIFY HTML:", (await dialog.inner_html())[:1500], flush=True)
+        print("VERIFY BODY:", (await page.locator("body").inner_text())[:800], flush=True)
     except Exception:
         pass
     for frame in page.frames:
-        try:
-            anchor = frame.locator("#recaptcha-anchor")
-            if await anchor.count():
-                await anchor.click(timeout=8000)
-                print("Clicked reCAPTCHA checkbox", flush=True)
-                await page.wait_for_timeout(3000)
-                break
-        except Exception:
-            pass
+        for selector in ("#recaptcha-anchor", ".recaptcha-checkbox-border",
+                         "[aria-label*='robot' i]", "[aria-label*='verify' i]"):
+            try:
+                anchor = frame.locator(selector)
+                if await anchor.count():
+                    await anchor.first.click(timeout=8000)
+                    print(f"Clicked reCAPTCHA element: {selector}", flush=True)
+                    await page.wait_for_timeout(3000)
+                    break
+            except Exception:
+                pass
+    try:
+        iframes = await page.evaluate("() => Array.from(document.querySelectorAll('iframe')).map(f => f.src).filter(Boolean).slice(0, 20)")
+        print("VERIFY IFRAMES:", iframes, flush=True)
+    except Exception:
+        pass
+    try:
+        nodes = await page.evaluate("() => { const out=[]; const seen=new Set(); function walk(root){ for (const el of root.querySelectorAll('*')) { if (el.shadowRoot) walk(el.shadowRoot); const tag=el.tagName.toLowerCase(); if (!['button','ytcp-button','tp-yt-paper-button','a'].includes(tag)) continue; const text=(el.innerText||el.textContent||'').trim(); if (!text || seen.has(el)) continue; seen.add(el); out.push([tag,text.slice(0,80),el.id||'',el.getAttribute('aria-label')||'']); } } walk(document); return out.slice(0,40); }")
+        print("VERIFY BUTTONS:", nodes, flush=True)
+    except Exception:
+        pass
+    solved = False
     for label in ("Continue", "Confirm", "Verify", "Yes, it's me", "I'm not a robot"):
         try:
-            button = dialog.get_by_text(label, exact=False).last
+            button = page.get_by_text(label, exact=False).last
             if await button.count():
                 await button.click(timeout=5000)
                 print(f"Clicked verification button: {label}", flush=True)
+                solved = True
                 break
         except Exception:
             pass
-    await page.wait_for_timeout(1000)
-    return True
+    if not solved:
+        try:
+            buttons = await dialog.locator("button, ytcp-button, tp-yt-paper-button").all()
+        except Exception:
+            buttons = []
+        for button in buttons:
+            try:
+                text = (await button.inner_text() or "").strip()
+            except Exception:
+                text = ""
+            if not text:
+                try:
+                    text = (await button.get_attribute("aria-label") or "").strip()
+                except Exception:
+                    text = ""
+            if not text or any(word in text.lower() for word in ("cancel", "close", "not now")):
+                continue
+            try:
+                await button.click(timeout=5000)
+                print(f"Clicked dialog verification button: {text}", flush=True)
+                solved = True
+                break
+            except Exception:
+                try:
+                    await button.evaluate("el => el.click()")
+                    print(f"JS-clicked dialog verification button: {text}", flush=True)
+                    solved = True
+                    break
+                except Exception:
+                    pass
+    await page.wait_for_timeout(1000 if solved else 2500)
+    return solved
 
 
 '''
