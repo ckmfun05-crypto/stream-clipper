@@ -50,7 +50,7 @@ def upload_clip(
                 video_id = match.group(1) if match else ""
                 log.info("Upload succeeded: %s", video_id or path.name)
                 return True, video_id
-            log.warning("Upload failed (exit %d): %s", result.returncode, last_output[-1500:])
+            log.warning("Upload failed (exit %d): stdout=%s stderr=%s", result.returncode, result.stdout[-4000:], result.stderr[-4000:])
         except (OSError, subprocess.SubprocessError) as exc:
             log.warning("Upload command error: %s", exc)
     log.error("Giving up on %s after 2 attempts", path.name)
