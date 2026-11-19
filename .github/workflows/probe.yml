@@ -14,7 +14,7 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           export PATH="$HOME/.local/bin:$PATH"
           uv venv
-          uv pip install --python "$HOME/.venv/bin/python" yt-dlp
+          uv pip install --python "$PWD/.venv/bin/python" yt-dlp
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Test Twitch endpoints
         run: |
@@ -24,10 +24,10 @@ jobs:
             -H 'Client-ID: kimne78kx3ncx6brgo4mv6wki5h1ko' -H 'Content-Type: application/json' \
             --data '[{"operationName":null,"variables":{},"query":"query { __typename }"}]' || echo "graphql failed"
           echo "=== yt-dlp simulate ==="
-          timeout 60s "$HOME/.venv/bin/yt-dlp" --simulate --no-warnings --dump-json \
+          timeout 60s "$PWD/.venv/bin/yt-dlp" --simulate --no-warnings --dump-json \
             https://www.twitch.tv/videos/2933192897 2>&1 | head -c 3000 || echo "simulate failed"
           echo "=== yt-dlp section ==="
-          timeout 90s "$HOME/.venv/bin/yt-dlp" --no-playlist --no-warnings \
+          timeout 90s "$PWD/.venv/bin/yt-dlp" --no-playlist --no-warnings \
             -f 'bestvideo[height<=720]+bestaudio/best' --merge-output-format mp4 \
             --download-sections '*60-90' --force-keyframes-at-cuts \
             -o /tmp/probe.mp4 https://www.twitch.tv/videos/2933192897 2>&1 | head -c 3000 || echo "section failed"
