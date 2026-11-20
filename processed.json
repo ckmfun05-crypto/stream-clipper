@@ -437,6 +437,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2934870795": {
+      "streamer": "IShowSpeed",
+      "url": "https://www.twitch.tv/videos/2934870795",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2934870795_01.mp4",
+          "start": 0.0,
+          "end": 90.0,
+          "score": 61,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
