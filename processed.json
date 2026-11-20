@@ -452,6 +452,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2935071086": {
+      "streamer": "IlloJuan",
+      "url": "https://www.twitch.tv/videos/2935071086",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2935071086_01.mp4",
+          "start": 1005.0,
+          "end": 1110.0,
+          "score": 51,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
