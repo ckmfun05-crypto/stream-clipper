@@ -527,6 +527,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2935613960": {
+      "streamer": "KaiCenat",
+      "url": "https://www.twitch.tv/videos/2935613960",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2935613960_01.mp4",
+          "start": 15.0,
+          "end": 870.0,
+          "score": 82,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
