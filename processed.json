@@ -872,6 +872,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2932265097": {
+      "streamer": "MontanaBlack88",
+      "url": "https://www.twitch.tv/videos/2932265097",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2932265097_01.mp4",
+          "start": 5.0,
+          "end": 150.0,
+          "score": 48,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
