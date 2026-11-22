@@ -752,6 +752,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2931596568": {
+      "streamer": "zackrawrr",
+      "url": "https://www.twitch.tv/videos/2931596568",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2931596568_01.mp4",
+          "start": 105.0,
+          "end": 150.0,
+          "score": 50,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
