@@ -857,6 +857,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2937156707": {
+      "streamer": "Trymacs",
+      "url": "https://www.twitch.tv/videos/2937156707",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2937156707_01.mp4",
+          "start": 0.0,
+          "end": 520.0,
+          "score": 25,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
