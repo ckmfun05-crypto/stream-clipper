@@ -812,6 +812,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2936934156": {
+      "streamer": "Fanum",
+      "url": "https://www.twitch.tv/videos/2936934156",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2936934156_01.mp4",
+          "start": 35.0,
+          "end": 900.0,
+          "score": 50,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
