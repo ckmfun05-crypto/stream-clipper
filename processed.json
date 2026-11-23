@@ -1142,6 +1142,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2938666621": {
+      "streamer": "Rubius",
+      "url": "https://www.twitch.tv/videos/2938666621",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2938666621_01.mp4",
+          "start": 15.0,
+          "end": 270.0,
+          "score": 55,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
