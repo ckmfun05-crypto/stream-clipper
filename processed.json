@@ -992,6 +992,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2937629817": {
+      "streamer": "xQc",
+      "url": "https://www.twitch.tv/videos/2937629817",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2937629817_01.mp4",
+          "start": 0.0,
+          "end": 40.0,
+          "score": 49,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
