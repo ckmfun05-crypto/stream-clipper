@@ -1067,6 +1067,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2936840963": {
+      "streamer": "Leb1ga",
+      "url": "https://www.twitch.tv/videos/2936840963",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2936840963_01.mp4",
+          "start": 25.0,
+          "end": 700.0,
+          "score": 40,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
