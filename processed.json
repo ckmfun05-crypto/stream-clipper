@@ -1217,6 +1217,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2934132437": {
+      "streamer": "Ludwig",
+      "url": "https://www.twitch.tv/videos/2934132437",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2934132437_01.mp4",
+          "start": 5.0,
+          "end": 130.0,
+          "score": 55,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
