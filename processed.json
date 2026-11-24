@@ -1319,6 +1319,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2939354041": {
+      "streamer": "zarbex",
+      "url": "https://www.twitch.tv/videos/2939354041",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2939354041_01.mp4",
+          "start": 1715.0,
+          "end": 1780.0,
+          "score": 39,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
