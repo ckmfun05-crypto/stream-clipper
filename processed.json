@@ -1262,6 +1262,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2936967569": {
+      "streamer": "sasatikk",
+      "url": "https://www.twitch.tv/videos/2936967569",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2936967569_01.mp4",
+          "start": 395.0,
+          "end": 640.0,
+          "score": 13,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
