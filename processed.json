@@ -1157,6 +1157,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2938886234": {
+      "streamer": "TheBurntPeanut",
+      "url": "https://www.twitch.tv/videos/2938886234",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2938886234_01.mp4",
+          "start": 105.0,
+          "end": 430.0,
+          "score": 53,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
