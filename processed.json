@@ -1499,6 +1499,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2940085270": {
+      "streamer": "Maximilian_DOOD",
+      "url": "https://www.twitch.tv/videos/2940085270",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2940085270_01.mp4",
+          "start": 1095.0,
+          "end": 1740.0,
+          "score": 39,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
