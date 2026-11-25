@@ -1424,6 +1424,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2935540873": {
+      "streamer": "vanillamace",
+      "url": "https://www.twitch.tv/videos/2935540873",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2935540873_01.mp4",
+          "start": 15.0,
+          "end": 150.0,
+          "score": 56,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
