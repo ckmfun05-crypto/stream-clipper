@@ -1616,6 +1616,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2940391075": {
+      "streamer": "auronplay",
+      "url": "https://www.twitch.tv/videos/2940391075",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2940391075_01.mp4",
+          "start": 15.0,
+          "end": 90.0,
+          "score": 91,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
