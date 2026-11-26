@@ -1847,6 +1847,12 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2940541130": {
+      "streamer": "Domingo",
+      "url": "https://www.twitch.tv/videos/2940541130",
+      "status": "processed",
+      "clips": []
     }
   }
 }
