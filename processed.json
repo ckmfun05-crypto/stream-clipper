@@ -1697,6 +1697,21 @@
       "url": "https://www.twitch.tv/videos/2940148524",
       "status": "processed",
       "clips": []
+    },
+    "2939953291": {
+      "streamer": "Vinesauce",
+      "url": "https://www.twitch.tv/videos/2939953291",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2939953291_01.mp4",
+          "start": 885.0,
+          "end": 930.0,
+          "score": 48,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
