@@ -1883,6 +1883,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2941510537": {
+      "streamer": "Tumblurr",
+      "url": "https://www.twitch.tv/videos/2941510537",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2941510537_01.mp4",
+          "start": 25.0,
+          "end": 490.0,
+          "score": 44,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
