@@ -1853,6 +1853,21 @@
       "url": "https://www.twitch.tv/videos/2940541130",
       "status": "processed",
       "clips": []
+    },
+    "2941461420": {
+      "streamer": "Joe_Bartolozzi",
+      "url": "https://www.twitch.tv/videos/2941461420",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2941461420_01.mp4",
+          "start": 25.0,
+          "end": 330.0,
+          "score": 61,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
