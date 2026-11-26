@@ -1787,6 +1787,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2935679784": {
+      "streamer": "yourragegaming",
+      "url": "https://www.twitch.tv/videos/2935679784",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2935679784_01.mp4",
+          "start": 705.0,
+          "end": 750.0,
+          "score": 48,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
