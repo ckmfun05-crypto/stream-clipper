@@ -2219,6 +2219,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2941378225": {
+      "streamer": "DjMaRiiO",
+      "url": "https://www.twitch.tv/videos/2941378225",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2941378225_01.mp4",
+          "start": 855.0,
+          "end": 990.0,
+          "score": 37,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
