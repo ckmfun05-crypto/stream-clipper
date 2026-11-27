@@ -2174,6 +2174,21 @@
       "url": "https://www.twitch.tv/videos/2934423900",
       "status": "no_chat",
       "clips": []
+    },
+    "2942196441": {
+      "streamer": "CohhCarnage",
+      "url": "https://www.twitch.tv/videos/2942196441",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942196441_01.mp4",
+          "start": 35.0,
+          "end": 520.0,
+          "score": 28,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
