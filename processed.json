@@ -2249,6 +2249,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942366082": {
+      "streamer": "NickEh30",
+      "url": "https://www.twitch.tv/videos/2942366082",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942366082_01.mp4",
+          "start": 25.0,
+          "end": 600.0,
+          "score": 9,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
