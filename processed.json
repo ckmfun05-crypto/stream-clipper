@@ -2132,6 +2132,48 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942060578": {
+      "streamer": "Domingo",
+      "url": "https://www.twitch.tv/videos/2942060578",
+      "status": "processed",
+      "clips": []
+    },
+    "2941256724": {
+      "streamer": "Domingo",
+      "url": "https://www.twitch.tv/videos/2941256724",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2940859463": {
+      "streamer": "frametamer666",
+      "url": "https://www.twitch.tv/videos/2940859463",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2938915006": {
+      "streamer": "frametamer666",
+      "url": "https://www.twitch.tv/videos/2938915006",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2936786153": {
+      "streamer": "frametamer666",
+      "url": "https://www.twitch.tv/videos/2936786153",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2934472461": {
+      "streamer": "frametamer666",
+      "url": "https://www.twitch.tv/videos/2934472461",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2934423900": {
+      "streamer": "frametamer666",
+      "url": "https://www.twitch.tv/videos/2934423900",
+      "status": "no_chat",
+      "clips": []
     }
   }
 }
