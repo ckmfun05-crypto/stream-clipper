@@ -2264,6 +2264,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942412891": {
+      "streamer": "Joe_Bartolozzi",
+      "url": "https://www.twitch.tv/videos/2942412891",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942412891_01.mp4",
+          "start": 15.0,
+          "end": 70.0,
+          "score": 58,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
