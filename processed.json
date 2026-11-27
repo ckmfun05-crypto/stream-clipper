@@ -2006,6 +2006,72 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2941949678": {
+      "streamer": "TypicalGamer",
+      "url": "https://www.twitch.tv/videos/2941949678",
+      "status": "processed",
+      "clips": []
+    },
+    "2940963580": {
+      "streamer": "TypicalGamer",
+      "url": "https://www.twitch.tv/videos/2940963580",
+      "status": "processed",
+      "clips": []
+    },
+    "2939917221": {
+      "streamer": "TypicalGamer",
+      "url": "https://www.twitch.tv/videos/2939917221",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2938912600": {
+      "streamer": "TypicalGamer",
+      "url": "https://www.twitch.tv/videos/2938912600",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2937819109": {
+      "streamer": "TypicalGamer",
+      "url": "https://www.twitch.tv/videos/2937819109",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2938967116": {
+      "streamer": "pokelawls",
+      "url": "https://www.twitch.tv/videos/2938967116",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2935029880": {
+      "streamer": "pokelawls",
+      "url": "https://www.twitch.tv/videos/2935029880",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2933651056": {
+      "streamer": "pokelawls",
+      "url": "https://www.twitch.tv/videos/2933651056",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2941649660": {
+      "streamer": "mistermv",
+      "url": "https://www.twitch.tv/videos/2941649660",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2939396857": {
+      "streamer": "mistermv",
+      "url": "https://www.twitch.tv/videos/2939396857",
+      "status": "no_chat",
+      "clips": []
+    },
+    "2938732894": {
+      "streamer": "mistermv",
+      "url": "https://www.twitch.tv/videos/2938732894",
+      "status": "no_chat",
+      "clips": []
     }
   }
 }
