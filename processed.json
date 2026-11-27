@@ -1961,6 +1961,21 @@
       "url": "https://www.twitch.tv/videos/2938687639",
       "status": "no_chat",
       "clips": []
+    },
+    "2941376205": {
+      "streamer": "NickEh30",
+      "url": "https://www.twitch.tv/videos/2941376205",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2941376205_01.mp4",
+          "start": 15.0,
+          "end": 380.0,
+          "score": 7,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
