@@ -1976,6 +1976,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2941743763": {
+      "streamer": "Roier",
+      "url": "https://www.twitch.tv/videos/2941743763",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2941743763_01.mp4",
+          "start": 35.0,
+          "end": 230.0,
+          "score": 41,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
