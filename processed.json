@@ -2234,6 +2234,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942407120": {
+      "streamer": "alanzoka",
+      "url": "https://www.twitch.tv/videos/2942407120",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942407120_01.mp4",
+          "start": 1125.0,
+          "end": 1390.0,
+          "score": 49,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
