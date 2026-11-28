@@ -2324,6 +2324,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2938617081": {
+      "streamer": "HasanAbi",
+      "url": "https://www.twitch.tv/videos/2938617081",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2938617081_01.mp4",
+          "start": 1485.0,
+          "end": 1530.0,
+          "score": 51,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
