@@ -2414,6 +2414,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942704974": {
+      "streamer": "frametamer666",
+      "url": "https://www.twitch.tv/videos/2942704974",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942704974_01.mp4",
+          "start": 0.0,
+          "end": 320.0,
+          "score": 42,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
