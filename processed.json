@@ -2489,6 +2489,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2943252066": {
+      "streamer": "ohnePixel",
+      "url": "https://www.twitch.tv/videos/2943252066",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2943252066_01.mp4",
+          "start": 585.0,
+          "end": 750.0,
+          "score": 48,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
