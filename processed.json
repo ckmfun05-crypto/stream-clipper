@@ -2444,6 +2444,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2943095062": {
+      "streamer": "Loya",
+      "url": "https://www.twitch.tv/videos/2943095062",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2943095062_01.mp4",
+          "start": 445.0,
+          "end": 600.0,
+          "score": 8,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
