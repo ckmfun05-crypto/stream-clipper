@@ -2429,6 +2429,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942949033": {
+      "streamer": "AdrianaChechik_",
+      "url": "https://www.twitch.tv/videos/2942949033",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942949033_01.mp4",
+          "start": 875.0,
+          "end": 1300.0,
+          "score": 26,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
