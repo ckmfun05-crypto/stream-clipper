@@ -2504,6 +2504,24 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2943307488": {
+      "streamer": "Gotaga",
+      "url": "https://www.twitch.tv/videos/2943307488",
+      "status": "processed",
+      "clips": []
+    },
+    "2943244270": {
+      "streamer": "Gotaga",
+      "url": "https://www.twitch.tv/videos/2943244270",
+      "status": "processed",
+      "clips": []
+    },
+    "2941334443": {
+      "streamer": "Gotaga",
+      "url": "https://www.twitch.tv/videos/2941334443",
+      "status": "no_chat",
+      "clips": []
     }
   }
 }
