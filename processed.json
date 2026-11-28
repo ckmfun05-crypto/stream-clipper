@@ -2399,6 +2399,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942978170": {
+      "streamer": "Tonton",
+      "url": "https://www.twitch.tv/videos/2942978170",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942978170_01.mp4",
+          "start": 495.0,
+          "end": 1310.0,
+          "score": 6,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
