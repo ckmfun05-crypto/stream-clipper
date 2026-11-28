@@ -2369,6 +2369,21 @@
           "youtube_id": ""
         }
       ]
+    },
+    "2942917301": {
+      "streamer": "moistcr1tikal",
+      "url": "https://www.twitch.tv/videos/2942917301",
+      "status": "processed",
+      "clips": [
+        {
+          "file": "clips/2942917301_01.mp4",
+          "start": 985.0,
+          "end": 1170.0,
+          "score": 28,
+          "uploaded": false,
+          "youtube_id": ""
+        }
+      ]
     }
   }
 }
